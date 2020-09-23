@@ -1,7 +1,7 @@
-	000# ---
-#   title: ""
-# author: "Jing Ma"
-# date: ""
+# Differential Network Enrichment Analysis
+# (DNEA) algorithm.
+# Reference for algorithm and code:
+# "Ma, Jing, et al. "Differential network enrichment analysis reveals novel lipid pathways in chronic kidney disease." Bioinformatics 35.18 (2019): 3441-3452."
 
 rm(list=ls())
 
