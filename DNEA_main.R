@@ -22,7 +22,7 @@ source("lib2/JSEM.R")
 source("lib2/netgsa_complex.R")
 
 
-main.seed <- 21
+main.seed <- 101
 set.seed(main.seed)
 
 ## parameter setting for each of the 3 steps
@@ -48,8 +48,8 @@ performSubsamling <- FALSE
 # estimate partial correlation matrix (getGraph)
 # and perform NetGSA (runNetGSA)
 # set to TRUE in Step 3      
-runNetGSA <- FALSE
-getGraph <- FALSE
+runNetGSA <- TRUE
+getGraph <- TRUE
 savePlots <- FALSE 
 
 
@@ -76,17 +76,17 @@ eps <- 1e-06
 ## input data information
 
 # sample group designation in input data
-group1 <- ""
-group2 <- ""
+group1 <- "non-diabetic"
+group2 <- "diabetic"
 
 # input data filename and directory
 # (specify complete path to directory)
-inFolder <- ""
-filename <- ""
+inFolder <- "/home/griyer/DNEA_code_results_manuscript/"
+filename <- "T1D_primaryMetabolites_log_scaled"
 
 # output directory name
 # (specify complete path to directory)
-OutFolder <- ""
+OutFolder <- "/home/griyer/DNEA_code_results_manuscript/T1D_results/"
 
 
 if (!getGraph){
@@ -109,14 +109,14 @@ if (!getGraph){
 
   dataset$metab_info$foldchange <- rowMeans(dat[[2]]) - rowMeans(dat[[1]])
   dataset$metab_info$fcdirection <- sapply(1:p, function(i) ifelse(dataset$metab_info$foldchange[i]>0, "Up", "Down"))
-  dataset$metab_info$fc.notes <- "Stage1 over Stage0"
+  dataset$metab_info$fc.notes <- "Group_2 over Group_1"
   
   dataset$metab_info$statistic <- sapply(1:p, function(i) t.test(dat[[2]][i,], dat[[1]][i,], var.equal=FALSE)$statistic)
   dataset$metab_info$pvalue <- sapply(1:p, function(i) t.test(dat[[2]][i,], dat[[1]][i,], var.equal=FALSE)$p.value)
   dataset$metab_info$qvalue <- p.adjust(dataset$metab_info$pvalue, "BH")
   dataset$metab_info$DEstatus <- sapply(1:p, function(i) ifelse(abs(dataset$metab_info$qvalue[i])>=0.05, FALSE, TRUE))
   
-  save(dataset, file = paste0(OutFolder, filename,"_datset_summary",".rda"))
+  save(dataset, file = paste0(OutFolder, filename,"_dataset_summary",".rda"))
   
   
   ## Joint estimation
@@ -163,15 +163,18 @@ if (!getGraph){
     listX = lapply(dat, t)
     
 	if (performSubsamling){
+	  cat("Stability selection with additional subsampling ... \n")
 		my.iter <- function(iter, seed.base){
 			fit = CGM_AHP_stabsel_subsample(X=listX, cnt=nreps, lastar = lastar.guo, seed.base=seed.base)
 			return(fit)
 		}  
 	} else {
+	  cat("Stability selection without additional subsampling ... \n")
 		my.iter <- function(iter, seed.base){
 			fit = CGM_AHP_stabsel(X=listX, cnt=nreps, lastar = lastar.guo, seed.base=seed.base)
 			return(fit)
 		}
+	}
 		
 	cat("Stability selection with Guo et al ... \n")
 	
@@ -190,8 +193,8 @@ if (!getGraph){
   }
 
 if (getGraph){
-  load(paste0(OutFolder,filename ,"_stable_networks",".rda"))
-  load(paste0(OutFolder,filename ,"_dataset_summary",".rda"))
+  load(paste0(OutFolder,filename,"_stable_networks",".rda"))
+  load(paste0(OutFolder,filename,"_dataset_summary",".rda"))
   
   ## Retrieve stable networks, which requires the stability selection results from previous step
   sel_mat <- vector("list", ncond)
@@ -200,8 +203,10 @@ if (getGraph){
     sel_mat[[k]] <- lapply(stab_guo, function(r) r$mat[[k]])
     sel_mat[[k]] <- Reduce("+", sel_mat[[k]])
 	if (performSubsamling){
+		cat("Selection probabilities with subsampling ... \n") 
 		sel_mat[[k]] <- sel_mat[[k]]/(nCores * nreps)
 	} else {	
+		cat("Selection probabilities without subsampling ... \n")
 		sel_mat[[k]] <- sel_mat[[k]]/(2 * nCores * nreps)
 	}
   }
@@ -239,7 +244,7 @@ if (getGraph){
   cat("Number of edges in Group_1: ", sum(Ahat[[1]])/2, "\n")
   cat("Number of edges in Group_2: ", sum(Ahat[[2]])/2, "\n")
   
-  save(wAdj, Ahat, file=paste0(OutFolder,filename ,"_adjacency_matrices_",today,".rda"))
+  save(wAdj, Ahat, file=paste0(OutFolder,filename ,"_adjacency_matrices",".rda"))
 
   ###*********************************************###
   ##    			Output edge list              ###
