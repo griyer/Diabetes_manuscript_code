@@ -69,7 +69,7 @@ for ( i in 1:nrow(stabsel_m1_cb_lambda_rank)){
 	rank_freq[i,4] <- length(which(stabsel_m1_cb_lambda_rank[i,] == 4))
 	rank_freq[i,5] <- length(which(stabsel_m1_cb_lambda_rank[i,] == 5))
 }
-rownames(rank_freq)[1:21] <- paste0("Cluster_", 1:21, " (M1)")
+
 rownames(rank_freq)[22:42] <- paste0("Cluster_", 1:21, " (CB)")
 rownames(rank_freq)[1:21] <- paste0("Cluster_", 1:21, " (M1)")
 
@@ -87,7 +87,7 @@ colnames(rank_freq2) <- c("Subnetwork #", "Rank_1_frequency")
 png("gglasso_stabsel_M1_CB_glassoOnly_nReps50.png", 
     height = 7, width = 10, units = "in", res = 300)
 
-ggplot(data = rank_freq2, aes(x = reorder("`Subnetwork #`", -Rank_1_frequency), 
+ggplot(data = rank_freq2, aes(x = reorder(`Subnetwork #`, -Rank_1_frequency), 
                               y = Rank_1_frequency)) + 
   geom_bar(stat = "identity", color = "black", fill ="#FF6666") + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1), 
